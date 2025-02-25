@@ -36,59 +36,45 @@ var storeCmd = &cobra.Command{
 	Short: "Store your secret",
 	Long:  `Store your secret in encrypted format.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		isPiped := false
+		var (
+			input  []byte
+			secret []byte
+			err    error
+
+			isPiped = args[0] == "-"
+		)
 
 		// Reference https://github.com/spf13/cobra/issues/1749 for more info on this strategy to gather
 		// pipe input. There might be changes regarding it in the future.
 		inputReader := cmd.InOrStdin()
 
-		if args[0] == "-" {
-			isPiped = true
+		if isPiped {
+			input, err = io.ReadAll(inputReader)
+			if err != nil {
+				return err
+			}
+		} else {
+			input = []byte(args[0])
 		}
 
 		if isFile {
 			var secretFilepath string
-			if isPiped {
-				rawSecretFilepath, err := io.ReadAll(inputReader)
-				if err != nil {
-				}
 
-				secretFilepath = string(rawSecretFilepath)
-			} else {
-				secretFilepath = args[0]
-			}
-
-			secretFilepath = strings.TrimSpace(secretFilepath)
+			secretFilepath = strings.TrimSpace(string(input))
 			absFilepath, err := filepath.Abs(secretFilepath)
 			if err != nil {
 				return err
 			}
 
-			secret, err := os.ReadFile(absFilepath)
+			secret, err = os.ReadFile(absFilepath)
 			if err != nil {
 				return err
 			}
-
-			fmt.Println(secret)
-
-			return nil
-		}
-
-		var (
-			secret []byte
-			err    error
-		)
-
-		if isPiped {
-			secret, err = io.ReadAll(inputReader)
-			if err != nil {
-			}
 		} else {
-			secret = []byte(args[0])
+			secret = input
 		}
 
-		fmt.Println(secret)
-
+		fmt.Fprintln(cmd.OutOrStdout(), string(secret))
 		return nil
 	},
 	Args: cobra.ExactArgs(1),
