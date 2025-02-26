@@ -17,13 +17,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -74,7 +79,37 @@ var storeCmd = &cobra.Command{
 			secret = input
 		}
 
-		fmt.Fprintln(cmd.OutOrStdout(), string(secret))
+		base64Secret := base64.URLEncoding.EncodeToString(secret)
+		body, err := json.Marshal(struct {
+			Secret string `json:"secret,omitempty"`
+		}{
+			Secret: base64Secret,
+		})
+
+		sr := strings.NewReader(string(body))
+		serverURL := viper.GetString("server")
+		if serverURL == "" {
+			cmd.SilenceUsage = true
+			return errors.New("No server was added to config. Use the command below to add one:\n\ntatu server add URL")
+		}
+
+		r, err := http.Post(serverURL+"/secrets", "application/json", sr)
+		if err != nil {
+			return err
+		}
+
+		if r.StatusCode != http.StatusCreated {
+			rBody, err := io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+			defer r.Body.Close()
+
+			fmt.Fprintln(cmd.ErrOrStderr(), rBody)
+			return nil
+		}
+
+		fmt.Fprintln(cmd.OutOrStdout(), "Secret was added.")
 		return nil
 	},
 	Args: cobra.ExactArgs(1),
