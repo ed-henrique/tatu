@@ -1,0 +1,8 @@
+-- +goose Up
+CREATE TABLE IF NOT EXISTS secrets (
+  ID INTEGER PRIMARY KEY,
+  VALUE BLOB
+) STRICT;
+
+-- +goose Down
+DROP TABLE IF EXISTS secrets;
