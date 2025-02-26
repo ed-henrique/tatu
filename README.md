@@ -4,8 +4,8 @@ Secret manager for dev teams.
 
 ## Development
 
-This section is about everything you need to know to self-host the project and contribute with it. 
-Thanks for considering to contribute with `tatu` ❤️.
+This section provides guidance for self-hosting and contributing to the project.
+Thank you for supporting `tatu`'s development ❤️.
 
 ### Requirements
 
