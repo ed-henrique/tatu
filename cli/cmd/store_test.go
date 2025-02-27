@@ -23,22 +23,39 @@ import (
 )
 
 func TestStoreCmd(t *testing.T) {
-	b := new(bytes.Buffer)
-	expected := "abc\n"
-
-	rootCmd.SetOut(b)
-	rootCmd.SetArgs([]string{"store", "abc"})
-	err := rootCmd.Execute()
-	if err != nil {
-		t.Fatal(err)
+	// TODO: mock server, preferably even viper
+	testtable := []struct {
+		name     string
+		args     []string
+		expected string
+		reader   io.Reader
+	}{
+		{
+			name:     "store string abc",
+			args:     []string{"--server", "http://localhost:8080", "store", "abc"},
+			expected: "Secret was added.\n",
+			reader:   nil,
+		},
 	}
 
-	out, err := io.ReadAll(b)
-	if err != nil {
-		t.Fatal(err)
-	}
+	for _, tt := range testtable {
+		b := new(bytes.Buffer)
 
-	if string(out) != expected {
-		t.Errorf("expected %s got %s", expected, string(out))
+		rootCmd.SetOut(b)
+		rootCmd.SetArgs(tt.args)
+
+		err := rootCmd.Execute()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		out, err := io.ReadAll(b)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if string(out) != tt.expected {
+			t.Errorf("expected %s got %s", tt.expected, string(out))
+		}
 	}
 }

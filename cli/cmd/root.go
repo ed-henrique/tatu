@@ -26,7 +26,10 @@ import (
 
 const defaultCfgFile = ".tatu"
 
-var cfgFile string
+var (
+	cfgFile       string
+	flaggedServer string
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -55,6 +58,7 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/"+defaultCfgFile+".toml)")
+	rootCmd.PersistentFlags().StringVarP(&flaggedServer, "server", "s", "", "host server (defaults to loading from "+defaultCfgFile+".toml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -76,6 +80,7 @@ func initConfig() {
 		viper.SetConfigType("toml")
 		viper.SetConfigName(defaultCfgFile)
 
+		// Creates config file if not exists
 		viper.SafeWriteConfig()
 	}
 
