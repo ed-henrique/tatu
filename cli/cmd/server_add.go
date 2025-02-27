@@ -24,23 +24,21 @@ import (
 )
 
 // serverAddCmd represents the serverAdd command
-var serverAddCmd = &cobra.Command{
-	Use:   "add",
-	Short: "Add new tatu server",
-	Long:  `Add new tatu server, saving it on your config.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		viper.Set("server", args[0])
-		err := viper.WriteConfig()
-		if err != nil {
-			return err
-		}
+func (cli *CLI) NewServerAddCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "add",
+		Short: "Add new tatu server",
+		Long:  `Add new tatu server, saving it on your config.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			viper.Set("server", args[0])
+			err := viper.WriteConfig()
+			if err != nil {
+				return err
+			}
 
-		fmt.Fprintln(cmd.OutOrStdout(), "Server was added")
-		return nil
-	},
-	Args: cobra.ExactArgs(1),
-}
-
-func init() {
-	serverCmd.AddCommand(serverAddCmd)
+			fmt.Fprintln(cmd.OutOrStdout(), "Server was added")
+			return nil
+		},
+		Args: cobra.ExactArgs(1),
+	}
 }

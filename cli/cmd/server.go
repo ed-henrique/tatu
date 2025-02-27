@@ -21,12 +21,10 @@ import (
 )
 
 // serverCmd represents the server command
-var serverCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Manage your servers",
-	Long:  `Manage your tatu servers.`,
-}
-
-func init() {
-	rootCmd.AddCommand(serverCmd)
+func (cli *CLI) NewServerCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "server",
+		Short: "Manage your servers",
+		Long:  `Manage your tatu servers.`,
+	}
 }
