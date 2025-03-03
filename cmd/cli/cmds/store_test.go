@@ -27,20 +27,6 @@ import (
 )
 
 func TestStoreCmd(t *testing.T) {
-	s := server.New()
-	s.Routes()
-
-	ts := httptest.NewServer(s.Mux)
-	defer ts.Close()
-
-	v := viper.New()
-	v.Set("server", ts.URL)
-
-	cli := New(
-		WithConfig(v),
-		WithHTTPClient(ts.Client()),
-	)
-
 	testtable := []struct {
 		name     string
 		args     []string
@@ -51,10 +37,28 @@ func TestStoreCmd(t *testing.T) {
 			args:     []string{"store", "abc"},
 			expected: "Secret was added.\n",
 		},
+		{
+			name:     "store string abcde from secret.txt",
+			args:     []string{"store", "-f", "../../../txt_tests/secret.txt"},
+			expected: "Secret was added.\n",
+		},
 	}
 
 	for _, tt := range testtable {
 		b := new(bytes.Buffer)
+		s := server.New()
+		s.Routes()
+
+		ts := httptest.NewServer(s.Mux)
+		defer ts.Close()
+
+		v := viper.New()
+		v.Set("server", ts.URL)
+
+		cli := New(
+			WithConfig(v),
+			WithHTTPClient(ts.Client()),
+		)
 
 		cli.root.SetOut(b)
 		cli.root.SetArgs(tt.args)

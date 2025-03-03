@@ -43,6 +43,7 @@ func New(dsn string) *sql.DB {
 		return nil
 	}
 
+	goose.SetLogger(goose.NopLogger())
 	goose.SetBaseFS(embeddedMigrations)
 
 	if err := goose.SetDialect("sqlite"); err != nil {
