@@ -1,4 +1,4 @@
-package cmd
+package server
 
 import (
 	"database/sql"
@@ -9,27 +9,47 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ed-henrique/tatu/api/internal/db"
-	"github.com/ed-henrique/tatu/api/internal/models"
+	"github.com/ed-henrique/tatu/internal/db"
+	"github.com/ed-henrique/tatu/internal/models"
 )
 
 type Server struct {
-	db  *sql.DB
-	q   *models.Queries
-	mux *http.ServeMux
+	db *sql.DB
+	q  *models.Queries
+
+	Mux *http.ServeMux
 }
 
-func Run() {
-	dbConn := db.New("db.sqlite")
+type ServerOption func(*Server)
+
+func WithDB(db *sql.DB) ServerOption {
+	return func(s *Server) {
+		s.db = db
+	}
+}
+
+func New(options ...ServerOption) *Server {
+	dbConn := db.New(":memory:")
+
 	s := Server{
 		db:  dbConn,
 		q:   models.New(dbConn),
-		mux: http.NewServeMux(),
+		Mux: http.NewServeMux(),
 	}
 
-	s.mux.Handle("POST /secrets", s.addSecret())
+	for _, o := range options {
+		o(&s)
+	}
 
-	if err := http.ListenAndServe(":8080", s.mux); err != nil {
+	return &s
+}
+
+func (s *Server) Routes() {
+	s.Mux.Handle("POST /secrets", s.addSecret())
+}
+
+func (s *Server) Run() {
+	if err := http.ListenAndServe(":8080", s.Mux); err != nil {
 		fmt.Fprintf(os.Stderr, "Could not start server: %s", err.Error())
 		os.Exit(1)
 	}

@@ -16,8 +16,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package main
 
-import "github.com/ed-henrique/tatu/api/cmd"
+import (
+	"github.com/ed-henrique/tatu/cmd/cli/cmds"
+	"github.com/spf13/viper"
+)
 
 func main() {
-	cmd.Run()
+	cli := cmds.New(cmds.WithConfig(viper.New()))
+	cli.Execute()
 }

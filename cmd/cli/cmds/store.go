@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package cmd
+package cmds
 
 import (
 	"encoding/base64"
@@ -27,9 +27,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ed-henrique/tatu/cli/internal/endpoints"
+	"github.com/ed-henrique/tatu/internal/endpoints"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -99,17 +98,16 @@ tatu store - < secret.txt`,
 			// Get "server" from config. This config name will change in the future, since multi-server
 			// configs are expected
 			sr := strings.NewReader(string(body))
-			serverURL := viper.GetString("server")
+			serverURL := cli.v.GetString("server")
 			if serverURL == "" {
 				if flaggedServer == "" {
-					cmd.SilenceUsage = true // No help message after this error message
-					return errNoServerInConfig
+					cobra.CheckErr(errNoServerInConfig)
 				}
 
 				serverURL = flaggedServer
 			}
 
-			r, err := http.Post(endpoints.Join(serverURL, endpoints.Secrets), "application/json", sr)
+			r, err := cli.c.Post(endpoints.Join(serverURL, endpoints.Secrets), "application/json", sr)
 			if err != nil {
 				return err
 			}

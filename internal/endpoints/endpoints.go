@@ -14,31 +14,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package cmd
+package endpoints
 
-import (
-	"fmt"
+import "strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+type Endpoint = string
+
+const (
+	Secrets Endpoint = "/secrets"
 )
 
-// serverAddCmd represents the serverAdd command
-func (cli *CLI) NewServerAddCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "add",
-		Short: "Add new tatu server",
-		Long:  `Add new tatu server, saving it on your config.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			viper.Set("server", args[0])
-			err := viper.WriteConfig()
-			if err != nil {
-				return err
-			}
-
-			fmt.Fprintln(cmd.OutOrStdout(), "Server was added")
-			return nil
-		},
-		Args: cobra.ExactArgs(1),
-	}
+func Join(server string, endpoint Endpoint) string {
+	return strings.Join([]string{server, endpoint}, "")
 }

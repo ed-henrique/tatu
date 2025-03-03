@@ -14,40 +14,52 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package cmd
+package cmds
 
 import (
 	"bytes"
 	"io"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/ed-henrique/tatu/internal/server"
+	"github.com/spf13/viper"
 )
 
 func TestStoreCmd(t *testing.T) {
-	// TODO: mock server, preferably even viper
+	s := server.New()
+	s.Routes()
+
+	ts := httptest.NewServer(s.Mux)
+	defer ts.Close()
+
+	v := viper.New()
+	v.Set("server", ts.URL)
+
+	cli := New(
+		WithConfig(v),
+		WithHTTPClient(ts.Client()),
+	)
+
 	testtable := []struct {
 		name     string
 		args     []string
 		expected string
-		reader   io.Reader
 	}{
 		{
 			name:     "store string abc",
-			args:     []string{"--server", "http://localhost:8080", "store", "abc"},
+			args:     []string{"store", "abc"},
 			expected: "Secret was added.\n",
-			reader:   nil,
 		},
 	}
 
 	for _, tt := range testtable {
 		b := new(bytes.Buffer)
 
-		rootCmd.SetOut(b)
-		rootCmd.SetArgs(tt.args)
+		cli.root.SetOut(b)
+		cli.root.SetArgs(tt.args)
 
-		err := rootCmd.Execute()
-		if err != nil {
-			t.Fatal(err)
-		}
+		cli.Execute()
 
 		out, err := io.ReadAll(b)
 		if err != nil {
