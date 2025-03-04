@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"io"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/ed-henrique/tatu/internal/server"
@@ -31,6 +32,7 @@ func TestStoreCmd(t *testing.T) {
 		name     string
 		args     []string
 		expected string
+		reader   io.Reader
 	}{
 		{
 			name:     "store string abc",
@@ -41,6 +43,12 @@ func TestStoreCmd(t *testing.T) {
 			name:     "store string abcde from secret.txt",
 			args:     []string{"store", "-f", "../../../txt_tests/secret.txt"},
 			expected: "Secret was added.\n",
+		},
+		{
+			name:     "store string abcde from pipe",
+			args:     []string{"store", "-"},
+			expected: "Secret was added.\n",
+			reader:   strings.NewReader("abcde"),
 		},
 	}
 
@@ -60,6 +68,7 @@ func TestStoreCmd(t *testing.T) {
 			WithHTTPClient(ts.Client()),
 		)
 
+		cli.root.SetIn(tt.reader)
 		cli.root.SetOut(b)
 		cli.root.SetArgs(tt.args)
 
